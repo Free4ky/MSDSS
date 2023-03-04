@@ -1,9 +1,10 @@
 from copy import deepcopy
 import operator
+
+import numpy as np
 import numpy.random
 import pandas as pd
-
-from src.Simplex.utils import *
+from src.utils import *
 
 numpy.random.seed(42)
 
@@ -17,6 +18,7 @@ class Simplex:
 
     def get_start_point_(self):
         return np.ones(self.dim)
+        # return np.array([2, 2])
 
     def sigma1_(self):
         return ((np.sqrt(self.dim + 1) - 1) * self.m) / (self.dim * np.sqrt(2))
@@ -73,7 +75,7 @@ class Simplex:
             data=np.c_[X, self.func(X)]
         )
 
-    def fit(self, func, dim, eps, m, iterations=500, verbose=True):
+    def fit(self, func, dim, eps, m, iterations=100, verbose=True):
         history = []
         self.eps = eps
         self.dim = dim
@@ -102,7 +104,7 @@ class Simplex:
                 X = self.reduction_(X)
 
                 # calculate simplex gravity center
-            x_c = 1 / (self.dim + 1) * np.sum(X, axis=1)
+            x_c = np.sum(X, axis=1) / (self.dim + 1)
             f_in_x_c = func(x_c)
             i += 1
             idx_min, y_min = self.get_min_(X)
@@ -111,7 +113,7 @@ class Simplex:
                 print(f'\nITERATION {i + 1}')
             print(self.create_df_(X))
 
-            if all(np.abs(i - f_in_x_c) < eps for i in func(X)):
+            if any(np.abs(i - f_in_x_c) < eps for i in func(X)):
                 return history
 
         return history
@@ -123,7 +125,7 @@ if __name__ == '__main__':
         func,
         dim=2,
         eps=0.1,
-        m=0.5,
+        m=0.75,
     )
     visualize(history)
     # print(history[-1])
